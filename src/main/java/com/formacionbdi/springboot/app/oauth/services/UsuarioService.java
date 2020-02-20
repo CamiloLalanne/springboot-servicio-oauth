@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import com.formacionbdi.springboot.app.oauth.clients.UsuarioFeignClient;
 import com.formacionbdi.springboot.app.usuarios.commons.models.entity.Usuario;
 
+import feign.FeignException;
+
 @Service
 public class UsuarioService implements IUsuarioService, UserDetailsService{
 	
@@ -27,12 +29,8 @@ public class UsuarioService implements IUsuarioService, UserDetailsService{
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		try {
 		Usuario usuario = client.findByUsername(username);
-		
-		if(usuario == null) {
-			log.error("Error en el login, no existe el usuario '"+username+"' en el sistema");
-			throw new UsernameNotFoundException("Error en el login, no existe el usuario '"+username+"' en el sistema");
-		}
 		
 		//con esto obtenemos los roles del usuario para luego retornarlos en el metodo
 		//los roles de spring security son del tipo grandAuthority
@@ -46,11 +44,20 @@ public class UsuarioService implements IUsuarioService, UserDetailsService{
 		
 		return new User(usuario.getUsername(), usuario.getPassword(), usuario.getEnabled(), true, 
 				true, true, authorities);
+		}catch (FeignException e) {
+			log.error("Error en el login, no existe el usuario '"+username+"' en el sistema");
+			throw new UsernameNotFoundException("Error en el login, no existe el usuario '"+username+"' en el sistema");
+		}
 	}
 
 	@Override
 	public Usuario findByUsername(String username) {
 		return client.findByUsername(username);
+	}
+
+	@Override
+	public Usuario update(Usuario usuario, Long id) {
+		return client.update(usuario, id);
 	}
 
 }

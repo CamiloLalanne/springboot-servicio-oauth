@@ -3,6 +3,7 @@ package com.formacionbdi.springboot.app.oauth.security;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,7 @@ import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
+//con refreshScope la clase se actualiza sin tener que reiniciar el projecto (se actualiza en tiempo de ejecucion)
 @RefreshScope
 @Configuration
 //esta clase se debe habilitar como un servidor de autorizacion, para eso utiliozamos la anotacion
@@ -25,9 +27,16 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter{
 	
+	//para obtener elementos de nuestros archivos properties
+	//se puede hacer mediante la inyeccion de el objeto Environment o 
+	//mediante la anotacion @value
+	//se recomienda usar environment cuando es mas de una propiedad,pero es indiferente
 	@Autowired
 	private Environment env;
-
+	
+	@Value("${config.security.oauth.client.id}")
+	private String clientId;
+	
 	//se necesita inyectar los dos beans que hemos creado en la clase springSecurityConfig
 	//para esto utilizamos autowired ya que ya estan creados en la clase anterior.
 	//beans a inyectar BCryptPasswordEncoder y authenticationManager
@@ -54,7 +63,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
 		//client id y secret es el id del usuario al que registraremos para que pueda tener acceso
 		//a nuestras aplicaciones y el secret vendria siendo el password
-		clients.inMemory().withClient(env.getProperty("config.security.oauth.client.id"))
+		clients.inMemory().withClient(clientId)
 		.secret(passwordEncoder.encode(env.getProperty("config.security.oauth.client.secret")))
 		//scope es el alcance que tendra el usuario, en este caso podra leer y escribir
 		.scopes("read", "write")
