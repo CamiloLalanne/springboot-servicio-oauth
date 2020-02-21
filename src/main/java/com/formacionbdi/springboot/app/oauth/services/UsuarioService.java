@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import com.formacionbdi.springboot.app.oauth.clients.UsuarioFeignClient;
 import com.formacionbdi.springboot.app.usuarios.commons.models.entity.Usuario;
 
+import brave.Tracer;
 import feign.FeignException;
 
 @Service
@@ -26,6 +27,10 @@ public class UsuarioService implements IUsuarioService, UserDetailsService{
 	
 	@Autowired
 	private UsuarioFeignClient client;
+	
+	//para agregar nuevos tag a zipkin, se necesita primero inyectar el componente Tracer
+	@Autowired
+	private Tracer tracer;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -45,7 +50,11 @@ public class UsuarioService implements IUsuarioService, UserDetailsService{
 		return new User(usuario.getUsername(), usuario.getPassword(), usuario.getEnabled(), true, 
 				true, true, authorities);
 		}catch (FeignException e) {
-			log.error("Error en el login, no existe el usuario '"+username+"' en el sistema");
+			String error = "Error en el login, no existe el usuario '"+username+"' en el sistema";
+			log.error(error);
+			//luego con el metodo currentSpan llamamos al metodo tag en el cual se pasa el id del tag y
+			// le pasamos el mensaje que mostrara ese tag
+			tracer.currentSpan().tag("error.mensaje", error+ " "+ e.getMessage());
 			throw new UsernameNotFoundException("Error en el login, no existe el usuario '"+username+"' en el sistema");
 		}
 	}
