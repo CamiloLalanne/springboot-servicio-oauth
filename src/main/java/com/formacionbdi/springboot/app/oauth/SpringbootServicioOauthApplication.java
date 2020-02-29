@@ -22,11 +22,11 @@ public class SpringbootServicioOauthApplication implements CommandLineRunner{
 
 	@Override
 	public void run(String... args) throws Exception {
-		String password = "12345";
+		String password = "camilo";
 		
 		for (int i = 0; i < 4; i++) {
 			String passwordBCrypt = passwordEncode.encode(password);
-			System.out.println(passwordBCrypt);
+			System.out.println("pass " + passwordBCrypt);
 		}
 		
 	}
