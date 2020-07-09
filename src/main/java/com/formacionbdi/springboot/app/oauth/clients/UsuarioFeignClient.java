@@ -20,4 +20,7 @@ public interface UsuarioFeignClient {
 	
 	@PutMapping("/usuarios/{id}")
 	public Usuario update(@RequestBody Usuario usuario, @PathVariable Long id);
+	
+	@GetMapping("/usuarios/search/obtenerPorUsername")
+	public Usuario obtenerUsername(@RequestParam String username);
 }

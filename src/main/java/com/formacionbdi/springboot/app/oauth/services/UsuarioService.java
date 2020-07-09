@@ -1,5 +1,6 @@
 package com.formacionbdi.springboot.app.oauth.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.formacionbdi.springboot.app.oauth.clients.UsuarioFeignClient;
+import com.formacionbdi.springboot.app.usuarios.commons.models.entity.Role;
 import com.formacionbdi.springboot.app.usuarios.commons.models.entity.Usuario;
 
 import brave.Tracer;
@@ -31,12 +33,19 @@ public class UsuarioService implements IUsuarioService, UserDetailsService{
 	//para agregar nuevos tag a zipkin, se necesita primero inyectar el componente Tracer
 	@Autowired
 	private Tracer tracer;
+	
+	Usuario usuario = null;
+	
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		try {
-		Usuario usuario = client.findByUsername(username);
-		
+			
+		//consultar servicio Usuarios obtener usuarios en distintos endpoint
+		//creados en servicio usuarios
+		//usuario = client.findByUsername(username);
+		  usuario = client.obtenerUsername(username);				
+			
 		//con esto obtenemos los roles del usuario para luego retornarlos en el metodo
 		//los roles de spring security son del tipo grandAuthority
 		List<GrantedAuthority> authorities = usuario.getRoles()
